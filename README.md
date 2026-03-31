@@ -29,7 +29,7 @@ A Worker Thread is a separate, parallel stream of execution. Each worker:
 
 1.  **Runs in Isolation**: It has its own V8 engine instance, its own event loop, and its own memory.
 2.  **Prevents Blocking**: It executes its script (`worker.mjs`) without blocking the main thread. This is crucial for performance, as it allows the main application to remain responsive while the workers perform CPU-intensive tasks in the background.
-3.  **Receives Data**: It's initialized with data from the main thread via the `workerData` property.
+3.  **Receives and Sends Data**: It's initialized with data from the main thread via the `workerData` property, and sends results or data back to the main thread using `parentPort.postMessage()`, which the main thread receives via `worker.on('message', ...)` events.
 
 ## How it works
 

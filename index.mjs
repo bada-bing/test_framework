@@ -6,6 +6,8 @@ import fs from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { Worker } from "worker_threads";
+import chalk from "chalk";
+
 // Worker lets us spawn isolated Node.js threads.
 // Each worker gets its own V8 instance and event loop — perfect for running tests in parallel.
 
@@ -34,7 +36,9 @@ const { hasteFS } = await map.build();
 // matchFilesWithGlob returns a Set of absolute paths matching the given pattern.
 const testFiles = hasteFS.matchFilesWithGlob(["**/*.test.js"]);
 
-console.log(`Found ${testFiles.size} test file(s). Spawning workers…\n`);
+const spawningWorkersMessage = `⋙⋙⋙ Found ${testFiles.size} test file(s). Spawning workers… ⋘⋘⋘\n`
+
+console.log(chalk.underline(chalk.blue(spawningWorkersMessage.toUpperCase())));
 
 // Spawn one dedicated worker thread for each test file.
 // Workers run in parallel — they do not block each other or the main thread.
@@ -51,6 +55,17 @@ for (const filePath of testFiles) {
       workerData: { filePath },
     }
   );
+
+  worker.on("message", (result) => {
+    if (result.success) {
+      console.log(chalk.green(`✔ Test passed: ${filePath}`));
+    } else {
+      console.error(
+        chalk.red(`✖ Test failed: ${filePath}`),
+        `\n  ${result.errorMessage}`
+      );
+    }
+  });
 
   // Listen for unhandled errors thrown inside the worker.
   worker.on("error", (err) =>
